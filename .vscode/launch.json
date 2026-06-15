@@ -1,0 +1,30 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "(gdb) 启动",
+            "type": "cppdbg",
+            "request": "launch",
+            // 1. 自动匹配当前打开的 .c 文件生成的 exe
+            "program": "${fileDirname}\\${fileBasenameNoExtension}.exe",
+            "args": [],
+            "stopAtEntry": false,
+            // 2. 自动定位到当前文件所在目录（避免中文路径建议后续重命名文件夹）
+            "cwd": "${fileDirname}",
+            "environment": [],
+            "externalConsole": false,
+            "MIMode": "gdb",
+            // 3. 填写你本地 MinGW 的 gdb.exe 完整路径（需根据实际安装位置修改）
+            "miDebuggerPath": "C:\\mingw64\\bin\\gdb.exe",
+            "setupCommands": [
+                {
+                    "description": "为 gdb 启用整齐打印",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                }
+            ],
+            // 关键：调试前自动编译，确保 exe 是最新的
+            "preLaunchTask": "C/C++: gcc.exe 生成活动文件"
+        }
+    ]
+}
