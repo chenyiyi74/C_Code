@@ -119,31 +119,79 @@ void sortAndSave(Student *head, int type, char *filename) {
 
 // ===== 统计 =====
 void stats(Student *head) {
+    if (!head) {
+        printf("暂无数据\n");
+        return;
+    }
+
+    // ===== 每门课统计变量 =====
     float sc=0, sm=0, se=0;
-    int n=0,f=0,a=0,b=0,c=0,d=0;
+    float maxc=-1, maxm=-1, maxe=-1;
+    float minc=101, minm=101, mine=101;
+
+    int n=0;
+
+    int c_fail=0,c_60=0,c_70=0,c_80=0,c_90=0;
+    int m_fail=0,m_60=0,m_70=0,m_80=0,m_90=0;
+    int e_fail=0,e_60=0,e_70=0,e_80=0,e_90=0;
 
     for (Student *p=head; p; p=p->next) {
-        sc += p->c;
-        sm += p->math;
-        se += p->english;
+        float c = p->c, m = p->math, e = p->english;
 
-        float x = p->avg;
-        if (x < 60) f++;
-        else if (x < 70) a++;
-        else if (x < 80) b++;
-        else if (x < 90) c++;
-        else d++;
+        // ===== 累加平均 =====
+        sc += c;
+        sm += m;
+        se += e;
+
+        // ===== 最大最小 =====
+        if (c > maxc) maxc = c;
+        if (m > maxm) maxm = m;
+        if (e > maxe) maxe = e;
+
+        if (c < minc) minc = c;
+        if (m < minm) minm = m;
+        if (e < mine) mine = e;
+
+        // ===== C统计 =====
+        if (c < 60) c_fail++;
+        else if (c < 70) c_60++;
+        else if (c < 80) c_70++;
+        else if (c < 90) c_80++;
+        else c_90++;
+
+        // ===== Math统计 =====
+        if (m < 60) m_fail++;
+        else if (m < 70) m_60++;
+        else if (m < 80) m_70++;
+        else if (m < 90) m_80++;
+        else m_90++;
+
+        // ===== English统计 =====
+        if (e < 60) e_fail++;
+        else if (e < 70) e_60++;
+        else if (e < 80) e_70++;
+        else if (e < 90) e_80++;
+        else e_90++;
 
         n++;
     }
 
-    printf("\n===== 统计 =====\n");
-    printf("C均分: %.2f\n", sc/n);
-    printf("Math均分: %.2f\n", sm/n);
-    printf("Eng均分: %.2f\n", se/n);
+    printf("\n========== 课程统计 ==========\n");
 
-    printf("分数段 <60:%d 60-69:%d 70-79:%d 80-89:%d 90+:%d\n",
-           f,a,b,c,d);
+    printf("\n----- C语言 -----\n");
+    printf("平均分: %.2f 最高分: %.2f 最低分: %.2f\n", sc/n, maxc, minc);
+    printf("不及格:%d 60-69:%d 70-79:%d 80-89:%d 90+:%d\n",
+           c_fail, c_60, c_70, c_80, c_90);
+
+    printf("\n----- Math -----\n");
+    printf("平均分: %.2f 最高分: %.2f 最低分: %.2f\n", sm/n, maxm, minm);
+    printf("不及格:%d 60-69:%d 70-79:%d 80-89:%d 90+:%d\n",
+           m_fail, m_60, m_70, m_80, m_90);
+
+    printf("\n----- English -----\n");
+    printf("平均分: %.2f 最高分: %.2f 最低分: %.2f\n", se/n, maxe, mine);
+    printf("不及格:%d 60-69:%d 70-79:%d 80-89:%d 90+:%d\n",
+           e_fail, e_60, e_70, e_80, e_90);
 }
 
 // ===== 显示 =====
