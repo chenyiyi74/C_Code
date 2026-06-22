@@ -1,0 +1,259 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <time.h>
+
+#define MAXN 800000
+
+typedef struct {
+    int key;
+} Record;
+
+/* 全局统计变量 */
+long long cmpCount, moveCount;
+
+/* 交换（算3次移动） */
+void swap(Record *a, Record *b) {
+    Record t = *a;
+    *a = *b;
+    *b = t;
+    moveCount += 3;
+}
+
+/* ================= 插入排序 ================= */
+void insertSort(Record a[], int n) {
+    for (int i = 1; i < n; i++) {
+        Record temp = a[i];
+        moveCount++;
+
+        int j = i - 1;
+        while (j >= 0) {
+            cmpCount++;
+            if (a[j].key > temp.key) {
+                a[j + 1] = a[j];
+                moveCount++;
+                j--;
+            } else break;
+        }
+        a[j + 1] = temp;
+        moveCount++;
+    }
+}
+
+/* ================= 冒泡排序 ================= */
+void bubbleSort(Record a[], int n) {
+    for (int i = 0; i < n - 1; i++) {
+        for (int j = 0; j < n - i - 1; j++) {
+            cmpCount++;
+            if (a[j].key > a[j + 1].key)
+                swap(&a[j], &a[j + 1]);
+        }
+    }
+}
+
+/* ================= 简单选择排序 ================= */
+void selectSort(Record a[], int n) {
+    for (int i = 0; i < n - 1; i++) {
+        int min = i;
+        for (int j = i + 1; j < n; j++) {
+            cmpCount++;
+            if (a[j].key < a[min].key)
+                min = j;
+        }
+        if (min != i)
+            swap(&a[i], &a[min]);
+    }
+}
+
+/* ================= 希尔排序 ================= */
+void shellSort(Record a[], int n) {
+    for (int gap = n / 2; gap > 0; gap /= 2) {
+        for (int i = gap; i < n; i++) {
+            Record temp = a[i];
+            moveCount++;
+
+            int j;
+            for (j = i; j >= gap; j -= gap) {
+                cmpCount++;
+                if (a[j - gap].key > temp.key) {
+                    a[j] = a[j - gap];
+                    moveCount++;
+                } else break;
+            }
+            a[j] = temp;
+            moveCount++;
+        }
+    }
+}
+
+/* ================= 快速排序 ================= */
+int partition(Record a[], int low, int high) {
+    Record pivot = a[low];
+    moveCount++;
+
+    while (low < high) {
+        while (low < high && a[high].key >= pivot.key) {
+            cmpCount++;
+            high--;
+        }
+        a[low] = a[high];
+        moveCount++;
+
+        while (low < high && a[low].key <= pivot.key) {
+            cmpCount++;
+            low++;
+        }
+        a[high] = a[low];
+        moveCount++;
+    }
+    a[low] = pivot;
+    moveCount++;
+    return low;
+}
+
+void quickSort(Record a[], int low, int high) {
+    if (low < high) {
+        int pos = partition(a, low, high);
+        quickSort(a, low, pos - 1);
+        quickSort(a, pos + 1, high);
+    }
+}
+
+/* ================= 堆排序 ================= */
+void heapAdjust(Record a[], int i, int n) {
+    Record temp = a[i];
+    moveCount++;
+
+    for (int j = 2 * i + 1; j < n; j = 2 * j + 1) {
+        if (j + 1 < n) {
+            cmpCount++;
+            if (a[j].key < a[j + 1].key)
+                j++;
+        }
+
+        cmpCount++;
+        if (temp.key >= a[j].key)
+            break;
+
+        a[i] = a[j];
+        moveCount++;
+        i = j;
+    }
+
+    a[i] = temp;
+    moveCount++;
+}
+
+void heapSort(Record a[], int n) {
+    for (int i = n / 2 - 1; i >= 0; i--)
+        heapAdjust(a, i, n);
+
+    for (int i = n - 1; i > 0; i--) {
+        swap(&a[0], &a[i]);
+        heapAdjust(a, 0, i);
+    }
+}
+
+/* ================= 归并排序 ================= */
+Record tempArr[MAXN];
+
+void merge(Record a[], int l, int m, int r) {
+    int i = l, j = m + 1, k = l;
+
+    while (i <= m && j <= r) {
+        cmpCount++;
+        if (a[i].key <= a[j].key)
+            tempArr[k++] = a[i++];
+        else
+            tempArr[k++] = a[j++];
+        moveCount++;
+    }
+
+    while (i <= m) {
+        tempArr[k++] = a[i++];
+        moveCount++;
+    }
+
+    while (j <= r) {
+        tempArr[k++] = a[j++];
+        moveCount++;
+    }
+
+    for (int t = l; t <= r; t++) {
+        a[t] = tempArr[t];
+        moveCount++;
+    }
+}
+
+void mergeSort(Record a[], int l, int r) {
+    if (l < r) {
+        int m = (l + r) / 2;
+        mergeSort(a, l, m);
+        mergeSort(a, m + 1, r);
+        merge(a, l, m, r);
+    }
+}
+
+/* ================= 读文件 ================= */
+int readFile(const char *filename, Record a[]) {
+    FILE *fp = fopen(filename, "r");
+    if (!fp) return -1;
+
+    int n;
+    fscanf(fp, "%d", &n);
+    for (int i = 0; i < n; i++)
+        fscanf(fp, "%d", &a[i].key);
+
+    fclose(fp);
+    return n;
+}
+
+/* ================= 测试函数 ================= */
+void testSort(void (*func)(Record[], int), Record a[], int n, const char *name) {
+    Record *b = (Record *)malloc(sizeof(Record) * n);
+    memcpy(b, a, sizeof(Record) * n);
+
+    cmpCount = moveCount = 0;
+
+    clock_t start = clock();
+
+    func(b, n);
+
+    clock_t end = clock();
+
+    double time = (double)(end - start) / CLOCKS_PER_SEC;
+
+    printf("%s  比较:%lld  移动:%lld  时间:%.3f s\n",
+           name, cmpCount, moveCount, time);
+
+    free(b);
+}
+
+/* ================= 主函数 ================= */
+int main() {
+    Record *a = (Record *)malloc(sizeof(Record) * MAXN);
+
+    char filename[50];
+
+    /* 示例：测试一个文件 */
+    strcpy(filename, "data_50000_1.txt");
+
+    int n = readFile(filename, a);
+    if (n == -1) {
+        printf("文件读取失败\n");
+        return 0;
+    }
+
+    printf("数据规模: %d\n", n);
+
+    testSort(insertSort, a, n, "插入排序");
+    testSort(bubbleSort, a, n, "冒泡排序");
+    testSort(selectSort, a, n, "选择排序");
+    testSort(shellSort, a, n, "希尔排序");
+    testSort(heapSort, a, n, "堆排序");
+    testSort(quickSort, a, n, "快速排序(包装需改)");
+    testSort(mergeSort, a, n, "归并排序");
+
+    free(a);
+    return 0;
+}
